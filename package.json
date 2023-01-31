@@ -28,7 +28,7 @@
     "discord-api-types": "^0.22.0",
     "discord.js": "^14.6.0",
     "discord.js-better-buttons": "^1.0.2",
-    "express": "^4.17.2",
+    "express": "^4.17.3",
     "ffmpeg": "^0.0.4",
     "firebase": "^9.6.7",
     "get-image-colors": "^4.0.0",
