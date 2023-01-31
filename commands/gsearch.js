@@ -5,6 +5,8 @@ const { getFavicon } = require('../utility.js');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
+const trim = (str, max) => ((str.length > max) ? `${str.slice(0, max - 3)}...` : str);
+
 async function fetchData(url) {
 	console.log('Crawling data...');
 	// make http call to url
@@ -19,59 +21,35 @@ async function fetchData(url) {
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('gsearch')
-		.setDescription('search google')
+		.setName('scrape')
+		.setDescription('scrape a website')
 		.addStringOption(option =>
-			option.setName('query')
-				.setDescription('thing to search for')
+			option.setName('website')
+				.setDescription('website to scrape')
 				.setRequired(true)),
 	async execute(interaction) {
 		await interaction.deferReply();
 
-		/*
-		const searchParams = new URLSearchParams({ q: interaction.options.getString('query') });
-		console.log(`https://www.google.com/search?${searchParams.toString()}`);
-		const res = await axios(`https://www.google.com/search?${searchParams.toString()}`);
-		console.log(res);
+		const res = await axios(interaction.options.getString('website'));
 		const html = res.data;
+		console.log(html);
 		const $ = cheerio.load(html);
-		console.log($);
-
-		$('div.g').each(function(i, elem) {
-			const link = $(this);
-			const descElem = $(elem).find('div.s');
-			console.log(descElem.text());
-			const text = link.text();
-
-			console.log(text);
-		});
-		const links = [];
-		const titles = [];
-		const snippets = [];
-
-		$('.yuRUbf > a').each((i, el) => {
-			links[i] = $(el).attr('href');
-		});
-		$('.yuRUbf > a > h3').each((i, el) => {
-			titles[i] = $(el).text();
-		});
-		$('.IsZvec').each((i, el) => {
-			snippets[i] = $(el).text().trim();
-		});
-
-		const result = [];
-		for (let i = 0; i < links.length; i++) {
-			result[i] = {
-				link: links[i],
-				title: titles[i],
-				snippet: snippets[i],
-			};
-		}
-		*/
+		console.log(($('h1')).text());
+		console.log(($('h2')));
+		const h2 = $('h2');
+		const p = $('p');
+		let desc = '';
 
 		const embed = new Discord.MessageEmbed()
-			.setTitle(`google search results for "${interaction.options.getString('query')}`);
+			.setTitle(($('title')).text());
 
-		await interaction.editReply({ embeds: [embed] });
+		p.each((index, element) => {
+			console.log($(element).text());
+			desc = `${desc}\n\n${$(element).text()}`;
+		});
+
+		embed.setDescription(trim(desc, 2048));
+
+		interaction.editReply({ embeds: [embed] });
 	},
 };

@@ -32,7 +32,7 @@ class Voice {
      * @param {*} stream
      * @returns
      */
-	static play(connection, stream) {
+	static play(connection) {
 		this.resource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true });
 		const player = createAudioPlayer();
 		player.play(this.resource);

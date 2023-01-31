@@ -18,23 +18,18 @@ module.exports = {
 		),
 	async execute(interaction) {
 		await interaction.deferReply();
-		const safe = interaction.options.getBoolean('safe') != null ? interaction.options.getBoolean('safe') : true;
 		const google = new Scraper({
 			puppeteer: {
 				headless: true,
 			},
-			tbs: { safe: safe },
+			tbs: { safe: true },
 		});
 		const images = await google.scrape(interaction.options.getString('query'), 100);
 		const image = utility.random(images);
 		const embed = new Discord.MessageEmbed()
-			.setAuthor('google images', 'https://www.google.com/s2/favicons?domain=images.google.com', 'https://images.google.com')
 			.setTitle(interaction.options.getString('query'))
 			.setURL(image.source)
 			.setImage(image.url);
-		if (!safe) {
-			embed.setFooter('😳 NSFW');
-		}
 		await interaction.deleteReply();
 		await interaction.followUp({ embeds: [embed], ephemeral: !safe });
 	},

@@ -30,6 +30,7 @@ module.exports = {
 		const file = getIconAttachment('reddit_icon');
 		const id = Math.random().toString();
 		const post = await getPost(interaction.options.getString('subreddit'), false);
+		console.log(post)
 		const row = new Discord.MessageActionRow()
 			.addComponents(
 				new Discord.MessageButton()
@@ -47,12 +48,16 @@ module.exports = {
 			.setDescription(post.selftext)
 			.setColor(embedColors.reddit);
 		await interaction.reply({ embeds: [embed], ephemeral: post.over_18, components: [row], files: [file] });
+		if (post.media) {
+			interaction.followUp({ content: post.media.oembed.html });
+		}
 		const filter = i => (i.user.id == interaction.user.id || i.user.id == '695662672687005737') && i.customId.startsWith(id);
 
 		const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60 * 1000 });
 		collector.on('collect', async i => {
 			if (i.customId.endsWith('refresh')) {
 				const newPost = (utility.random(postCache[interaction.options.getString('subreddit')])).data;
+				console.log(newPost);
 				embed.setAuthor(`r/${interaction.options.getString('subreddit')}  •  u/${newPost.author}`, 'attachment://reddit_icon.png', `https://www.reddit.com/r/${interaction.options.getString('subreddit')}`);
 				embed.setImage(newPost.url_overridden_by_dest);
 				embed.setTitle(trim(newPost.title, 256));

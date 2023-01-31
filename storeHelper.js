@@ -1,6 +1,7 @@
 const Json = require('./jsonHelper.js');
 const WebhookSignalManager = require('./webhookSignalManager.js');
 const Discord = require('discord.js');
+const egbFirestore = require('./egbFirestore.js');
 
 /**
  * A helper class for managing the eg-points store

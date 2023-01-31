@@ -1,57 +1,37 @@
-const Discord = require('discord.js');
-const yts = require('yt-search');
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const Voice = new (require('../voiceHelper.js'))();
-const { AudioPlayerStatus } = require('@discordjs/voice');
-
-const Voice2 = require('../Voice.js');
-const { embedColors, getIconAttachment } = require('../Decor.js');
+const play = require('play-dl');
+const { EmbedBuilder } = require('discord.js');
+const { createAudioPlayer, createAudioResource, joinVoiceChannel, NoSubscriberBehavior } = require('@discordjs/voice');
 
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('play')
-		.setDescription('play a youtube video')
-		.addStringOption(option =>
-			option.setName('name')
-				.setDescription('name of video to play')
-				.setRequired(true))
-		.addBooleanOption(option =>
-			option.setName('loop')
-				.setDescription('whether or not to loop the song')
-				.setRequired(false))
-		.addBooleanOption(option =>
-			option.setName('private')
-				.setDescription('if egb should make the music interface publicly visible')
-				.setRequired(false)),
-	async execute(interaction) {
-		await interaction.deferReply();
-		const musicIcon = getIconAttachment('music_icon');
-		const connection = Voice2.joinVC(interaction.member.voice.channel);
-		const video = (await yts(interaction.options.getString('name'))).videos[0];
-		const download = await Voice2.downloadVideo(video.url);
-		const player = Voice2.playResource(connection, download);
-		const controlPanel = Voice2.createControlPanel();
-
-		const songEmbed = new Discord.MessageEmbed()
-			.setAuthor({ name: 'egb music', iconURL: 'attachment://music_icon.png' })
-			.setColor(embedColors.default)
-			.setURL(video.url)
-			.setTitle(video.title)
-			.setDescription(`**by [${video.author.name}](${video.author.url})**`)
-			.setImage(video.thumbnail);
-
-		const response = await interaction.followUp({ embeds: [songEmbed], components: controlPanel, files: [musicIcon], ephemeral: false });
-		Voice2.idkControlPanel(interaction, controlPanel, { response: response, player: player, resource: download });
-		player.on(AudioPlayerStatus.Idle, async () =>{
-			const row = controlPanel[0];
-			const row2 = controlPanel[1];
-			for (const component of row.components) {
-				component.setDisabled(true);
-			}
-			for (const component of row2.components) {
-				component.setDisabled(true);
-			}
-			response.edit({ components: [row, row2] });
+	async execute(msg, args) {
+		const connection = joinVoiceChannel({
+			channelId: msg.member.voice.channel.id,
+			guildId: msg.guild.id,
+			adapterCreator: msg.guild.voiceAdapterCreator,
 		});
+
+		const [yt_info] = await play.search(args.join(','), { limit: 1 });
+		const stream = await play.stream(yt_info.url);
+		const resource = createAudioResource(stream.stream, { inputType: stream.type });
+
+		const player = createAudioPlayer({
+			behaviors: {
+				noSubscriber: NoSubscriberBehavior.Play,
+			},
+		});
+
+		player.play(resource);
+
+		connection.subscribe(player);
+
+		const embed = new EmbedBuilder()
+	.setAuthor({ name: 'now playing' })
+	.setTitle(yt_info.title)
+	.setImage(yt_info.thumbnails[0].url)
+	.setTimestamp();
+
+		await msg.reply({ embeds: [embed] })
+
+
 	},
 };

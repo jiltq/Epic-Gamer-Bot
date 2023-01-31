@@ -13,3 +13,8 @@ const client = new Client({ intents });
 process.on('uncaughtException', error =>{
 	console.log(error);
 });
+
+client.on('interactionCreate', interaction =>{
+	if (!interaction.isModalSubmit()) return;
+	// console.log(interaction);
+});

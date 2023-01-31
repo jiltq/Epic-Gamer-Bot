@@ -28,13 +28,9 @@ module.exports = {
 		),
 	async execute(interaction) {
 		await interaction.deferReply();
-		const fromISO = translate.languages.getCode(interaction.options.getString('from')) || 'auto';
-		const toISO = translate.languages.getCode(interaction.options.getString('to')) || interaction.locale.split('-')[0];
 
-		const res = await translate(trim(interaction.options.getString('text'), 5000), { from: fromISO, to: toISO });
+		const res = await translate(trim(interaction.options.getString('text'), 5000), { from: 'auto', to: 'en' });
 		const embed = new Discord.MessageEmbed()
-			.setAuthor({ name: 'google translate', iconURL: 'https://www.google.com/s2/favicons?domain_url=https://translate.google.com', url: 'https://translate.google.com' })
-			.setColor('#2f3136')
 			.addField(`:flag_${res.from.language.iso}: ${translate.languages[res.from.language.iso]}`, trim(res.from.text.value || interaction.options.getString('text'), 1024), true)
 			.addField(`:flag_${toISO}: ${translate.languages[toISO]}`, trim(res.text, 1024), true);
 		interaction.editReply({ embeds: [embed] });
